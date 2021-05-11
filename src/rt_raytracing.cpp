@@ -178,17 +178,15 @@ void updateLine(RTContext &rtx, int y)
         // samples per pixel. Here, you do not need this loop, because we want
         // some interactivity and accumulate samples over multiple frames
         // instead (until the camera moves or the rendering is reset).
-        for (int i = 0; i < ny; ++i) {
 
-            if (rtx.current_frame <= 0) {
-                // Here we make the first frame blend with the old image,
-                // to smoothen the transition when resetting the accumulation
-                glm::vec4 old = rtx.image[y * nx + x];
-                rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
-            }
-            glm::vec3 c = color(rtx, r, rtx.max_bounces);
-            rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
+        if (rtx.current_frame <= 0) {
+            // Here we make the first frame blend with the old image,
+            // to smoothen the transition when resetting the accumulation
+            glm::vec4 old = rtx.image[y * nx + x];
+            rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
         }
+        glm::vec3 c = color(rtx, r, rtx.max_bounces);
+        rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
     }
 }
 

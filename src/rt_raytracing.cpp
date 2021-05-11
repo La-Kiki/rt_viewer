@@ -7,6 +7,7 @@
 
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
+#include <random>
 
 namespace rt {
 
@@ -54,6 +55,36 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
     return hit_anything;
 }
 
+double random_double() {
+    // Returns a random real in [0,1).
+    return rand() / (RAND_MAX + 1.0);
+}
+
+double random_double(double min, double max) {
+    // Returns a random real in [min,max).
+    return min + (max - min) * random_double();
+}
+glm::vec3 random(double min, double max) {
+    return glm::vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+}
+
+// Taken from chapter 8 in the "Ray Tracing in a Weekend" book
+glm::vec3 random_in_unit_sphere() {
+    while (true) {
+        auto p = random(-1, 1);
+        if (pow(glm::dot(p, p), 2.0) >= 1) continue;
+        return p;
+    }
+}
+
+glm::vec3 random_in_hemisphere(const glm::vec3& normal) {
+    glm::vec3 in_unit_sphere = random_in_unit_sphere();
+    if (glm::dot(in_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
+        return in_unit_sphere;
+    else
+        return -in_unit_sphere;
+}
+
 // This function should be called recursively (inside the function) for
 // bouncing rays when you compute the lighting for materials, like this
 //
@@ -62,7 +93,7 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
 //     return color(rtx, r_bounce, max_bounces - 1);
 // }
 //
-// See Chapter 7 in the "Ray Tracing in a Weekend" book
+// See Chapter 7 (+8.2) in the "Ray Tracing in a Weekend" book
 glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 {
     if (max_bounces < 0) return glm::vec3(0.0f);
@@ -71,8 +102,18 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     if (hit_world(r, 0.0f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
-
+        
         // Implement lighting for materials here
+        if(max_bounces <= 0){
+              return glm::vec3(0, 0, 0);
+        }
+        
+        const double infinity = std::numeric_limits<double>::infinity();
+        if (hit_world(r, 0.001, infinity, rec)) {
+            glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
+            Ray r_bounce = Ray(rec.p, target - rec.p);
+            return 0.5f * color(rtx, r_bounce, max_bounces - 1);
+        }
         // ...
         return glm::vec3(0.0f);
     }
@@ -92,11 +133,11 @@ void setupScene(RTContext &rtx, const char *filename)
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
         Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
     };
-    //g_scene.boxes = {
-    //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //};
+    g_scene.boxes = {
+        Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    };
 
     //cg::OBJMesh mesh;
     //cg::objMeshLoad(mesh, filename);
@@ -137,15 +178,17 @@ void updateLine(RTContext &rtx, int y)
         // samples per pixel. Here, you do not need this loop, because we want
         // some interactivity and accumulate samples over multiple frames
         // instead (until the camera moves or the rendering is reset).
+        for (int i = 0; i < ny; ++i) {
 
-        if (rtx.current_frame <= 0) {
-            // Here we make the first frame blend with the old image,
-            // to smoothen the transition when resetting the accumulation
-            glm::vec4 old = rtx.image[y * nx + x];
-            rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
+            if (rtx.current_frame <= 0) {
+                // Here we make the first frame blend with the old image,
+                // to smoothen the transition when resetting the accumulation
+                glm::vec4 old = rtx.image[y * nx + x];
+                rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
+            }
+            glm::vec3 c = color(rtx, r, rtx.max_bounces);
+            rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
         }
-        glm::vec3 c = color(rtx, r, rtx.max_bounces);
-        rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
     }
 }
 

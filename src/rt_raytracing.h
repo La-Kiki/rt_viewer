@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <random>
+#include <memory>
 
 class Lambertian;
 namespace rt {

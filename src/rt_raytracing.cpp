@@ -64,6 +64,7 @@ double random_double(double min, double max) {
     // Returns a random real in [min,max).
     return min + (max - min) * random_double();
 }
+
 glm::vec3 random(double min, double max) {
     return glm::vec3(random_double(min, max), random_double(min, max), random_double(min, max));
 }
@@ -72,7 +73,7 @@ glm::vec3 random(double min, double max) {
 glm::vec3 random_in_unit_sphere() {
     while (true) {
         auto p = random(-1, 1);
-        if (pow(glm::dot(p, p), 2.0) >= 1) continue;
+        if (glm::dot(p, p) >= 1) continue;
         return p;
     }
 }
@@ -105,7 +106,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         
         // Implement lighting for materials here
         if(max_bounces <= 0){
-              return glm::vec3(0, 0, 0);
+              return glm::vec3(0.0f);
         }
         
         const double infinity = std::numeric_limits<double>::infinity();
@@ -115,7 +116,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
             return 0.5f * color(rtx, r_bounce, max_bounces - 1);
         }
         // ...
-        return glm::vec3(0.0f);
+        //return glm::vec3(0.0f);
     }
 
     // If no hit, return sky color
@@ -133,11 +134,11 @@ void setupScene(RTContext &rtx, const char *filename)
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
         Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
     };
-    g_scene.boxes = {
-        Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    };
+    //g_scene.boxes = {
+    //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    //};
 
     //cg::OBJMesh mesh;
     //cg::objMeshLoad(mesh, filename);
@@ -186,6 +187,12 @@ void updateLine(RTContext &rtx, int y)
             rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
         }
         glm::vec3 c = color(rtx, r, rtx.max_bounces);
+
+        auto r = pow(c.x, 1 / 2.2);
+        auto g = pow(c.y, 1 / 2.2);
+        auto b = pow(c.z, 1 / 2.2);
+        //c = glm::vec3(r, g, b);
+
         rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
     }
 }

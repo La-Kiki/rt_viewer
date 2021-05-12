@@ -5,12 +5,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/component_wise.hpp>
 
+#include <cstdlib>
+#include <iostream>
+
+#include "material.h"
+
+class Material;
+
 namespace rt {
 
 struct HitRecord {
     float t;
     glm::vec3 p;
     glm::vec3 normal;
+    std::shared_ptr<Material> mat_ptr;
 };
 
 class Hitable {

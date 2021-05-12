@@ -4,10 +4,12 @@
 #include "rt_sphere.h"
 #include "rt_triangle.h"
 #include "rt_box.h"
+#include "material.h"
 
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
 #include <random>
+
 
 namespace rt {
 
@@ -86,6 +88,12 @@ glm::vec3 random_in_hemisphere(const glm::vec3& normal) {
         return -in_unit_sphere;
 }
 
+bool near_zero(glm::vec3 e) {
+    // Return true if the vector is close to zero in all dimensions.
+    const auto s = 1e-8;
+    return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+}
+
 // This function should be called recursively (inside the function) for
 // bouncing rays when you compute the lighting for materials, like this
 //
@@ -104,19 +112,18 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
         
-        // Implement lighting for materials here
-        if(max_bounces <= 0){
-              return glm::vec3(0.0f);
+        Ray scattered;
+        glm::vec3 attenuation;
+        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * color(rtx, scattered, max_bounces - 1);
         }
-        
-        const double infinity = std::numeric_limits<double>::infinity();
-        if (hit_world(r, 0.001f, infinity, rec)) {
-            glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-            Ray r_bounce = Ray(rec.p, target - rec.p);
-            return 0.5f * color(rtx, r_bounce, max_bounces - 1);
-        }
+
+        return color(0, 0, 0);
+
+        //glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
+        //Ray r_bounce = Ray(rec.p, target - rec.p);
+        //return 0.5f * color(rtx, r_bounce, max_bounces - 1);
         // ...
-        //return glm::vec3(0.0f);
     }
 
     // If no hit, return sky color

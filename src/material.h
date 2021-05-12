@@ -5,9 +5,8 @@
 #include <cstdlib>
 #include <iostream>
 
-struct HitRecord;
-
 namespace rt {
+    struct HitRecord;
 
 class Material {
   public:
@@ -35,17 +34,62 @@ public:
 
 class Metal : public Material {
 public:
-    Metal(const glm::vec3 &a) : albedo(a) {}
+    Metal(const glm::vec3 &a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
     virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const override {
         glm::vec3 reflected = glm::reflect(glm::normalize(r_in.direction()), rec.normal);
-        scattered = Ray(rec.p, reflected);
+        scattered = Ray(rec.p, reflected + (float)fuzz * random_in_unit_sphere());
         attenuation = albedo;
         return (glm::dot(scattered.direction(), rec.normal) > 0);
     }
 
 public:
     glm::vec3 albedo;
+    double fuzz;
+};
+
+class Dielectric : public Material {
+public:
+    Dielectric(double index_of_refraction) : ir(index_of_refraction) {}
+
+    virtual bool scatter(
+        const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered
+    ) const override {
+        double refraction_ratio = glm::dot(r_in.direction(), rec.normal) > 0.0 ? ir : (1.0 / ir);
+        glm::vec3 normal_dir = glm::dot(r_in.direction(), rec.normal) > 0.0 ? -rec.normal : rec.normal;
+
+        glm::vec3 unit_direction = glm::normalize(r_in.direction());
+        
+        double cos_theta = fmin(glm::dot(-unit_direction, normal_dir), 1.0);
+        double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+        bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+        glm::vec3 direction;
+        if (cannot_refract || reflectance(cos_theta, refraction_ratio) > rt::random_double()) {
+            // Must Reflect
+            direction = glm::reflect(unit_direction, normal_dir);
+        }
+        else {
+            // Can Refract
+            direction = rt::refract(unit_direction, normal_dir, refraction_ratio);
+        }
+        //glm::vec3 refracted = rt::refract(unit_direction, normal_dir, (float)refraction_ratio);
+
+        attenuation = glm::vec3(1.0, 1.0, 1.0);
+        scattered = Ray(rec.p, direction);
+        return true;
+    }
+
+public:
+    double ir; // Index of Refraction
+
+private:
+    static double reflectance(double cosine, double ref_idx) {
+        // Use Schlick's approximation for reflectance.
+        auto r0 = (1 - ref_idx) / (1 + ref_idx);
+        r0 = r0 * r0;
+        return r0 + (1 - r0) * pow((1 - cosine), 5);
+    }
 };
 
 }  // namespace rt

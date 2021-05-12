@@ -132,25 +132,32 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     return (1.0f - t) * rtx.ground_color + t * rtx.sky_color;
 }
 
+glm::vec3 refract(const glm::vec3 &uv, const glm::vec3 &n, double etai_over_etat) {
+    auto cos_theta = fmin(glm::dot(-uv, n), 1.0);
+    glm::vec3 r_out_perp = (float) etai_over_etat * (uv + (float) cos_theta * n);
+    glm::vec3 r_out_parallel = -sqrt((float)fabs(1.0 - glm::dot(r_out_perp, r_out_perp))) * n;
+    return r_out_perp + r_out_parallel;
+}
+
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
     auto material_ground = std::make_shared<rt::Lambertian>(glm::vec3(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<Lambertian>(glm::vec3(0.7, 0.3, 0.3));
-    auto material_left = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
-    auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));
+    auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
+    auto material_left = std::make_shared<Dielectric>(1.5);
+    auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
 
 
    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
         Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_left),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, material_right),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), -0.4f, material_left),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_right),
     };
     //g_scene.boxes = {
-    //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),
-    //   Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
+    //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), material_right),
+   //     Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f), material_left),
+    //    Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f), material_right),
     //};
 
     //cg::OBJMesh mesh;

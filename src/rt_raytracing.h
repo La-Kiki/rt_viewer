@@ -14,7 +14,6 @@
 
 
 namespace rt {
-class Material;
 
 struct RTContext {
     int width = 500;
@@ -39,7 +38,9 @@ void updateImage(RTContext &rtx);
 void resetImage(RTContext &rtx);
 void resetAccumulation(RTContext &rtx);
 
+double random_double();
 glm::vec3 random_in_unit_sphere();
 bool near_zero(glm::vec3 e);
+glm::vec3 refract(const glm::vec3& uv, const glm::vec3& n, double etai_over_etat);
 
 }  // namespace rt

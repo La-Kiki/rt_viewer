@@ -8,9 +8,8 @@
 #include <cstdlib>
 #include <iostream>
 
-class Material;
-
 namespace rt {
+    class Material;
 
 struct HitRecord {
     float t;

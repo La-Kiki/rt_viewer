@@ -10,8 +10,6 @@
 #include <random>
 
 
-class Material;
-
 namespace rt {
 
 // Store scene (world) in a global variable for convenience
@@ -113,17 +111,18 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
         
-        Ray scattered;
-        glm::vec3 attenuation;
-        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * color(rtx, scattered, max_bounces - 1);
-        }
 
-        return glm::vec3(0, 0, 0);
+        //Ray scattered;
+        //glm::vec3 attenuation;
+        //if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+        //    return attenuation * color(rtx, scattered, max_bounces - 1);
+        //}
 
-        //glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-        //Ray r_bounce = Ray(rec.p, target - rec.p);
-        //return 0.5f * color(rtx, r_bounce, max_bounces - 1);
+        //return glm::vec3(0, 0, 0);
+
+        glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
+        Ray r_bounce = Ray(rec.p, target - rec.p);
+        return 0.5f * color(rtx, r_bounce, max_bounces - 1);
         // ...
     }
 
@@ -138,15 +137,15 @@ void setupScene(RTContext &rtx, const char *filename)
 {
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f);
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
+        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
     };
     //g_scene.boxes = {
     //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),
     //   Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
     //    Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
-    };
+    //};
 
     //cg::OBJMesh mesh;
     //cg::objMeshLoad(mesh, filename);
@@ -195,11 +194,6 @@ void updateLine(RTContext &rtx, int y)
             rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
         }
         glm::vec3 c = color(rtx, r, rtx.max_bounces);
-
-        //auto r = pow(c.x, 1 / 2.2);
-        //auto g = pow(c.y, 1 / 2.2);
-        //auto b = pow(c.z, 1 / 2.2);
-        //c = glm::vec3(r, g, b);
 
         rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
     }

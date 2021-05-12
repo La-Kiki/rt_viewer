@@ -8,7 +8,7 @@
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
 #include <random>
-
+//Test add :)
 namespace rt {
 
 // Store scene (world) in a global variable for convenience
@@ -100,7 +100,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     if (max_bounces < 0) return glm::vec3(0.0f);
 
     HitRecord rec;
-    if (hit_world(r, 0.0f, 9999.0f, rec)) {
+    if (hit_world(r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
         
@@ -188,10 +188,10 @@ void updateLine(RTContext &rtx, int y)
         }
         glm::vec3 c = color(rtx, r, rtx.max_bounces);
 
-        auto r = pow(c.x, 1 / 2.2);
+        /*auto r = pow(c.x, 1 / 2.2);
         auto g = pow(c.y, 1 / 2.2);
         auto b = pow(c.z, 1 / 2.2);
-        //c = glm::vec3(r, g, b);
+        //c = glm::vec3(r, g, b);*/
 
         rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
     }

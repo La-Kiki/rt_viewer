@@ -6,7 +6,6 @@
 #include <iostream>
 
 struct HitRecord;
-class Ray;
 
 namespace rt {
 

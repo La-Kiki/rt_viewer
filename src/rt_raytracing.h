@@ -7,7 +7,9 @@
 #include <cstdlib>
 #include <iostream>
 
+
 #include <vector>
+#include <random>
 
 class Lambertian;
 namespace rt {
@@ -29,10 +31,6 @@ struct RTContext {
     glm::vec3 sky_color = glm::vec3(0.5f, 0.7f, 1.0f);
     bool show_normals = true;
     // Add more settings and parameters here
-    std::shared_ptr<Lambertian> material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
-    /*glm::vec3 material_center = std::make_shared<Lambertian>(glm::vec3(0.7, 0.3, 0.3));
-    glm::vec3 material_left = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
-    glm::vec3 material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));*/
     // ...
 };
 

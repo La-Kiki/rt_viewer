@@ -4,10 +4,10 @@
 #include "rt_sphere.h"
 #include "rt_triangle.h"
 #include "rt_box.h"
+#include "material.h"
 
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
-#include <random>
 
 
 namespace rt {
@@ -135,11 +135,17 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f);
+    auto material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<Lambertian>(glm::vec3(0.7, 0.3, 0.3));
+    auto material_left = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
+    auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));
+
+
+    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_left),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, material_right),
     };
     //g_scene.boxes = {
     //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),

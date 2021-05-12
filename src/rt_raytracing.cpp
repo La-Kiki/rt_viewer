@@ -100,7 +100,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     if (max_bounces < 0) return glm::vec3(0.0f);
 
     HitRecord rec;
-    if (hit_world(r, 0.0f, 9999.0f, rec)) {
+    if (hit_world(r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
         
@@ -110,7 +110,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         }
         
         const double infinity = std::numeric_limits<double>::infinity();
-        if (hit_world(r, 0.001, infinity, rec)) {
+        if (hit_world(r, 0.001f, infinity, rec)) {
             glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
             Ray r_bounce = Ray(rec.p, target - rec.p);
             return 0.5f * color(rtx, r_bounce, max_bounces - 1);
@@ -134,11 +134,11 @@ void setupScene(RTContext &rtx, const char *filename)
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
         Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
     };
-    //g_scene.boxes = {
-    //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //};
+    g_scene.boxes = {
+        Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
+    };
 
     //cg::OBJMesh mesh;
     //cg::objMeshLoad(mesh, filename);
@@ -188,9 +188,9 @@ void updateLine(RTContext &rtx, int y)
         }
         glm::vec3 c = color(rtx, r, rtx.max_bounces);
 
-        auto r = pow(c.x, 1 / 2.2);
-        auto g = pow(c.y, 1 / 2.2);
-        auto b = pow(c.z, 1 / 2.2);
+        //auto r = pow(c.x, 1 / 2.2);
+        //auto g = pow(c.y, 1 / 2.2);
+        //auto b = pow(c.z, 1 / 2.2);
         //c = glm::vec3(r, g, b);
 
         rtx.image[y * nx + x] += glm::vec4(c, 1.0f);

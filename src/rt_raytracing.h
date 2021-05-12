@@ -3,10 +3,16 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <cstdlib>
+#include <iostream>
 
 #include <vector>
 
+class Material;
+class Lambertian;
 namespace rt {
+
+
 
 struct RTContext {
     int width = 500;
@@ -23,10 +29,10 @@ struct RTContext {
     glm::vec3 sky_color = glm::vec3(0.5f, 0.7f, 1.0f);
     bool show_normals = true;
     // Add more settings and parameters here
-    //auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
-    //auto material_center = make_shared<lambertian>(color(0.7, 0.3, 0.3));
-    //auto material_left = make_shared<metal>(color(0.8, 0.8, 0.8));
-    //auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2));
+    std::shared_ptr<Lambertian> material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    /*glm::vec3 material_center = std::make_shared<Lambertian>(glm::vec3(0.7, 0.3, 0.3));
+    glm::vec3 material_left = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
+    glm::vec3 material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));*/
     // ...
 };
 
@@ -34,5 +40,8 @@ void setupScene(RTContext &rtx, const char *mesh_filename);
 void updateImage(RTContext &rtx);
 void resetImage(RTContext &rtx);
 void resetAccumulation(RTContext &rtx);
+
+glm::vec3 random_in_unit_sphere();
+bool near_zero(glm::vec3 e);
 
 }  // namespace rt

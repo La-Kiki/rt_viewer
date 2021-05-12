@@ -7,7 +7,7 @@ namespace rt {
 class Box : public Hitable {
   public:
     Box() {}
-    Box(const glm::vec3 &cen, const glm::vec3 r, std::shared_ptr<Material> m) : center(cen), radius(r), mat_ptr(m){};
+    Box(const glm::vec3 &cen, const glm::vec3 r, std::shared_ptr<Material> m) : center(cen), radius(r), mat_ptr(m) {};
     virtual bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 
     glm::vec3 center;
@@ -31,6 +31,7 @@ bool Box::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
         glm::vec3 npc = (rec.p - center) / radius;
         rec.normal = glm::sign(npc) * glm::step(glm::compMax(glm::abs(npc)), glm::abs(npc));
         rec.mat_ptr = mat_ptr;
+
         return true;
     }
     return false;

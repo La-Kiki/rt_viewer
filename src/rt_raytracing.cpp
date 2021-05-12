@@ -4,12 +4,13 @@
 #include "rt_sphere.h"
 #include "rt_triangle.h"
 #include "rt_box.h"
-#include "material.h"
 
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
 #include <random>
 
+
+class Material;
 
 namespace rt {
 
@@ -118,7 +119,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
             return attenuation * color(rtx, scattered, max_bounces - 1);
         }
 
-        return color(0, 0, 0);
+        return glm::vec3(0, 0, 0);
 
         //glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
         //Ray r_bounce = Ray(rec.p, target - rec.p);
@@ -137,14 +138,14 @@ void setupScene(RTContext &rtx, const char *filename)
 {
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f);
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, rtx.material_ground),
     };
-    g_scene.boxes = {
-        Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
+    //g_scene.boxes = {
+    //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f)),
+    //   Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
+    //    Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f)),
     };
 
     //cg::OBJMesh mesh;

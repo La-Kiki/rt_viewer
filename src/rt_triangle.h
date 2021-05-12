@@ -7,7 +7,7 @@ namespace rt {
 class Triangle : public Hitable {
   public:
     Triangle() {}
-    Triangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c,std::shared_ptr<Material> m) : v0(a), v1(b), v2(c), mat_ptr(m){};
+    Triangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, std::shared_ptr<Material> m) : v0(a), v1(b), v2(c), mat_ptr(m) {};
     virtual bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 
     glm::vec3 v0;

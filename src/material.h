@@ -1,49 +1,54 @@
 #pragma once
+
+#include "rt_raytracing.h"
+
 #include <glm/glm.hpp>
 
-struct hit_record;
+#include <cstdlib>
+#include <iostream>
 
-class material {
-public:
-    virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const = 0;
+struct HitRecord;
+class Ray;
+
+namespace rt {
+
+class Material {
+  public:
+     virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const = 0;
 };
 
-class lambertian : public material {
+class Lambertian : public Material {
 public:
-    lambertian(const color& a) : albedo(a) {}
+    Lambertian(const glm::vec3 &a) : albedo(a) {}
 
-    virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const override {
+    virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const override {
         auto scatter_direction = rec.normal + glm::normalize(random_in_unit_sphere());
-        if (scatter_direction.near_zero()) {
+        if (near_zero(scatter_direction)) {
             scatter_direction = rec.normal;
         }
             
-        scattered = ray(rec.p, scatter_direction);
+        scattered = Ray(rec.p, scatter_direction);
         attenuation = albedo;
         return true;
     }
 
 public:
-    color albedo;
+    glm::vec3 albedo;
 };
 
-class metal : public material {
+class Metal : public Material {
 public:
-    metal(const color& a) : albedo(a) {}
+    Metal(const glm::vec3 &a) : albedo(a) {}
 
-    virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const override {
-        vec3 reflected = glm::reflect(glm::normalize(r_in.direction()), rec.normal);
-        scattered = ray(rec.p, reflected);
+    virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const override {
+        glm::vec3 reflected = glm::reflect(glm::normalize(r_in.direction()), rec.normal);
+        scattered = Ray(rec.p, reflected);
         attenuation = albedo;
-        return (dot(scattered.direction(), rec.normal) > 0);
+        return (glm::dot(scattered.direction(), rec.normal) > 0);
     }
 
 public:
-    color albedo;
+    glm::vec3 albedo;
 };
+
+}  // namespace rt

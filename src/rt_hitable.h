@@ -8,8 +8,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "material.h"
-
 class Material;
 
 namespace rt {

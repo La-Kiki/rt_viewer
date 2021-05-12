@@ -12,10 +12,9 @@
 #include <random>
 #include <memory>
 
-class Lambertian;
+
 namespace rt {
-
-
+class Material;
 
 struct RTContext {
     int width = 500;

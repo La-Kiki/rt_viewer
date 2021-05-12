@@ -112,17 +112,17 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
         
 
-        //Ray scattered;
-        //glm::vec3 attenuation;
-        //if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-        //    return attenuation * color(rtx, scattered, max_bounces - 1);
-        //}
+        Ray scattered;
+        glm::vec3 attenuation;
+        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * color(rtx, scattered, max_bounces - 1);
+        }
 
-        //return glm::vec3(0, 0, 0);
+        return glm::vec3(0, 0, 0);
 
-        glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-        Ray r_bounce = Ray(rec.p, target - rec.p);
-        return 0.5f * color(rtx, r_bounce, max_bounces - 1);
+        // glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
+        // Ray r_bounce = Ray(rec.p, target - rec.p);
+        // return 0.5f * color(rtx, r_bounce, max_bounces - 1);
         // ...
     }
 
@@ -135,7 +135,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    std::shared_ptr<Lambertian> material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    auto material_ground = std::make_shared<rt::Lambertian>(glm::vec3(0.8, 0.8, 0.0));
     auto material_center = std::make_shared<Lambertian>(glm::vec3(0.7, 0.3, 0.3));
     auto material_left = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
     auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));

@@ -73,7 +73,6 @@ public:
             // Can Refract
             direction = rt::refract(unit_direction, normal_dir, refraction_ratio);
         }
-        //glm::vec3 refracted = rt::refract(unit_direction, normal_dir, (float)refraction_ratio);
 
         attenuation = glm::vec3(1.0, 1.0, 1.0);
         scattered = Ray(rec.p, direction);

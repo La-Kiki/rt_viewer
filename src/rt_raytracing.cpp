@@ -147,12 +147,7 @@ glm::vec3 refract(const glm::vec3 &uv, const glm::vec3 &n, double etai_over_etat
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-<<<<<<< HEAD
-    auto material_ground = std::make_shared<rt::Lambertian>(glm::vec3(0.8, 0.8, 0.0));
-
-=======
     auto material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
->>>>>>> 207ec32e1637729c8def359a14c38b90b836fa49
     auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
     auto material_left = std::make_shared<Dielectric>(1.5);
     auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);

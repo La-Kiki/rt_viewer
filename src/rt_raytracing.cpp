@@ -109,7 +109,10 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     HitRecord rec;
     if (hit_world(r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
-        if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
+        if (rtx.show_normals) { 
+            glm::vec3 normal = rec.normal;
+            if(rec.radius < 0){ normal = -normal; }
+            return normal * 0.5f + 0.5f; }
         
 
         Ray scattered;
@@ -142,7 +145,7 @@ glm::vec3 refract(const glm::vec3 &uv, const glm::vec3 &n, double etai_over_etat
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    auto material_ground = std::make_shared<rt::Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    auto material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
     auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
     auto material_left = std::make_shared<Dielectric>(1.5);
     auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
@@ -151,8 +154,9 @@ void setupScene(RTContext &rtx, const char *filename)
    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
         Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), -0.4f, material_left),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), -0.5f, material_left),
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_right),
+        Sphere(glm::vec3(2.0f, 0.0f, 0.0f), 0.5f, material_left),
     };
     //g_scene.boxes = {
     //    Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), material_right),

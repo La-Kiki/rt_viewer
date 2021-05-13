@@ -12,6 +12,7 @@ namespace rt {
     class Material;
 
 struct HitRecord {
+    float radius;
     float t;
     glm::vec3 p;
     glm::vec3 normal;

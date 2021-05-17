@@ -8,6 +8,7 @@ namespace rt {
 class Sphere : public Hitable {
   public:
     Sphere() {}
+    Sphere(const glm::vec3 &cen, float r) : center(cen), radius(r) {};
     Sphere(const glm::vec3 &cen, float r, std::shared_ptr<Material> m) : center(cen), radius(r), mat_ptr(m) {};
     virtual bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 
@@ -39,5 +40,6 @@ bool Sphere::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
     }
     return false;
 }
+
 
 }  // namespace rt

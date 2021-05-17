@@ -18,13 +18,14 @@ public:
     Lambertian(const glm::vec3 &a) : albedo(a) {}
 
     virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const override {
-        auto scatter_direction = rec.normal + glm::normalize(rt::random_in_unit_sphere());
+        auto scatter_direction = rec.normal + random_in_hemisphere(rec.normal); //glm::normalize(rt::random_in_unit_sphere());
         if (rt::near_zero(scatter_direction)) {
             scatter_direction = rec.normal;
         }
             
         scattered = Ray(rec.p, scatter_direction);
         attenuation = albedo;
+
         return true;
     }
 
@@ -55,8 +56,10 @@ public:
     virtual bool scatter(
         const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered
     ) const override {
-        double refraction_ratio = glm::dot(r_in.direction(), rec.normal) > 0.0 ? ir : (1.0 / ir);
-        glm::vec3 normal_dir = glm::dot(r_in.direction(), rec.normal) > 0.0 ? -rec.normal : rec.normal;
+        bool normal_in_ray_dir = glm::dot(r_in.direction(), rec.normal) > 0.0;
+
+        double refraction_ratio = normal_in_ray_dir ? ir : (1.0 / ir);
+        glm::vec3 normal_dir = normal_in_ray_dir ? -rec.normal : rec.normal;
 
         glm::vec3 unit_direction = glm::normalize(r_in.direction());
         
@@ -65,13 +68,14 @@ public:
 
         bool cannot_refract = refraction_ratio * sin_theta > 1.0;
         glm::vec3 direction;
-        if (cannot_refract || reflectance(cos_theta, refraction_ratio) > rt::random_double()) {
+
+        if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double()) {
             // Must Reflect
             direction = glm::reflect(unit_direction, normal_dir);
         }
         else {
             // Can Refract
-            direction = rt::refract(unit_direction, normal_dir, refraction_ratio);
+            direction = refract(unit_direction, normal_dir, refraction_ratio);
         }
 
         attenuation = glm::vec3(1.0, 1.0, 1.0);

@@ -93,6 +93,15 @@ bool near_zero(glm::vec3 e) {
     return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
 }
 
+
+glm::vec3 refract(const glm::vec3& uv, const glm::vec3& n, double etai_over_etat) {
+    auto cos_theta = fmin(glm::dot(-uv, n), 1.0f);
+    glm::vec3 r_out_perp = (float)etai_over_etat * (uv + (float)cos_theta * n);
+    glm::vec3 r_out_parallel = -sqrt((float)fabs(1.0f - glm::dot(r_out_perp, r_out_perp))) * n;
+    return r_out_perp + r_out_parallel;
+}
+
+
 // This function should be called recursively (inside the function) for
 // bouncing rays when you compute the lighting for materials, like this
 //
@@ -121,11 +130,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
             return attenuation * color(rtx, scattered, max_bounces - 1);
         }
 
-        //return glm::vec3(0, 0, 0);
-
-        glm::vec3 target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-         Ray r_bounce = Ray(rec.p, target - rec.p);
-         return 0.5f * color(rtx, r_bounce, max_bounces - 1);
+        return glm::vec3(0, 0, 0);
         // ...
     }
 
@@ -133,14 +138,6 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t = 0.5f * (unit_direction.y + 1.0f);
     return (1.0f - t) * rtx.ground_color + t * rtx.sky_color;
-}
-
-
-glm::vec3 refract(const glm::vec3 &uv, const glm::vec3 &n, double etai_over_etat) {
-    auto cos_theta = fmin(glm::dot(-uv, n), 1.0);
-    glm::vec3 r_out_perp = (float) etai_over_etat * (uv + (float) cos_theta * n);
-    glm::vec3 r_out_parallel = -sqrt((float)fabs(1.0 - glm::dot(r_out_perp, r_out_perp))) * n;
-    return r_out_perp + r_out_parallel;
 }
 
 
@@ -193,10 +190,10 @@ void updateLine(RTContext &rtx, int y)
     glm::mat4 world_from_view = glm::inverse(rtx.view);
 
     // You can try parallelising this loop by uncommenting this line:
-    //#pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for (int x = 0; x < nx; ++x) {
-        float u = (float(x) + 0.5f) / float(nx);
-        float v = (float(y) + 0.5f) / float(ny);
+        float u = (float(x) + random_double()) / float(nx);
+        float v = (float(y) + random_double()) / float(ny);
         Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
         r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
         r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));

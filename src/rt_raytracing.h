@@ -40,6 +40,7 @@ void resetAccumulation(RTContext &rtx);
 
 double random_double();
 glm::vec3 random_in_unit_sphere();
+glm::vec3 random_in_hemisphere(const glm::vec3& normal);
 bool near_zero(glm::vec3 e);
 glm::vec3 refract(const glm::vec3& uv, const glm::vec3& n, double etai_over_etat);
 

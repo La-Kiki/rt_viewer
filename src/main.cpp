@@ -33,6 +33,7 @@ struct Context {
     rt::RTContext rtx;
     GLuint texture = 0;
     float elapsed_time;
+    bool gammaCorrectionOn = true;
 };
 
 // Returns the value of an environment variable
@@ -126,6 +127,9 @@ void drawImage(Context &ctx)
     glUseProgram(ctx.program);
     glUniform1i(glGetUniformLocation(ctx.program, "u_texture"), 0);
 
+    // Send gamma correction bool to fragment shader
+    glUniform1i(glGetUniformLocation(ctx.program, "u_gammaCorrectionOn"), ctx.gammaCorrectionOn);
+
     // Draw fullscreen quad (without any vertex buffers)
     glBindVertexArray(ctx.emptyVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -144,6 +148,7 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
+    ImGui::Checkbox("Gamma Correction", &ctx.gammaCorrectionOn);
 
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);

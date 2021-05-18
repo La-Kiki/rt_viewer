@@ -138,8 +138,7 @@ void drawImage(Context &ctx)
 // MODIFY THIS FUNCTION
 void showGui(Context &ctx)
 {
-    //ImGui::Begin("Settings", NULL, 0); 
-    //ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+    ImGui::Begin("Settings", NULL, 0);
     if (ImGui::CollapsingHeader("Scene"))
     {
         if (ImGui::SliderInt("Max bounces", &ctx.rtx.max_bounces, 0, 10)) { rt::resetAccumulation(ctx.rtx); }
@@ -156,12 +155,13 @@ void showGui(Context &ctx)
         if (ImGui::SliderInt("Sphere 2", &ctx.rtx.material_sp2, 0, 3, names[ctx.rtx.material_sp2])) {rt::resetAccumulation(ctx.rtx); };
         if (ImGui::SliderInt("Sphere 3", &ctx.rtx.material_sp3, 0, 3, names[ctx.rtx.material_sp3])) {rt::resetAccumulation(ctx.rtx); };
     }
-    
+    ImGui::Separator();
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);
     if (ImGui::Button("Freeze/Resume")) { ctx.rtx.freeze = !ctx.rtx.freeze; }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) { rt::resetImage(ctx.rtx); }
+    ImGui::End();
 }
 
 void display(Context &ctx)
@@ -229,6 +229,15 @@ void charCallback(GLFWwindow *window, unsigned int codepoint)
     if (ImGui::GetIO().WantTextInput) { return; }  // Skip other handling
 }
 
+void scroll_callback(GLFWwindow *window, double x, double y)
+{
+    // Forward event to ImGui
+    ImGui_ImplGlfwGL3_ScrollCallback(window, x, y);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    //Enables zooming
+    Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
+}
+
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
     // Forward event to GUI
@@ -291,6 +300,7 @@ int main(void)
     glfwSetMouseButtonCallback(ctx.window, mouseButtonCallback);
     glfwSetCursorPosCallback(ctx.window, cursorPosCallback);
     glfwSetFramebufferSizeCallback(ctx.window, resizeCallback);
+    glfwSetScrollCallback(ctx.window, scroll_callback);
 
     // Load OpenGL functions
     glewExperimental = true;

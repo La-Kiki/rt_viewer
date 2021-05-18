@@ -148,7 +148,8 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
-    ImGui::Checkbox("Gamma Correction", &ctx.gammaCorrectionOn);
+    if (ImGui::Checkbox("Gamma correction", &ctx.gammaCorrectionOn)) { rt::resetAccumulation(ctx.rtx); } 
+    if (ImGui::Checkbox("Anti-aliasing", &ctx.rtx.antiAliasingOn)) { rt::resetAccumulation(ctx.rtx); }
 
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);

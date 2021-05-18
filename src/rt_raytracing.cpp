@@ -125,7 +125,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { 
             glm::vec3 normal = rec.normal;
-            if(rec.radius < 0){ normal = -normal; }
+            if (rec.radius < 0) { normal = -normal; }
             return normal * 0.5f + 0.5f; }
         
 
@@ -202,8 +202,16 @@ void updateLine(RTContext &rtx, int y)
     // You can try parallelising this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
     for (int x = 0; x < nx; ++x) {
-        float u = (float(x) + random_double()) / float(nx);
-        float v = (float(y) + random_double()) / float(ny);
+
+        float u = (float(x) + 0.5) / (float(nx)-1);
+        float v = (float(y) + 0.5) / (float(ny)-1);
+        
+        if (rtx.antiAliasingOn)
+        {
+            u = (float(x) + random_double()) / (float(nx)-1);
+            v = (float(y) + random_double()) / (float(ny)-1);
+        }
+        
         Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
         r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
         r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));

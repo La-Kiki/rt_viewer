@@ -29,8 +29,10 @@ struct RTContext {
     glm::vec3 ground_color = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 sky_color = glm::vec3(0.5f, 0.7f, 1.0f);
     bool show_normals = false;
-    // Add more settings and parameters here
-    // ...
+    bool antiAliasingOn = true;
+    int material_sp1 = 0;
+    int material_sp2 = 3;
+    int material_sp3 = 2;
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);

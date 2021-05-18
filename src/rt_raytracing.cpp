@@ -20,6 +20,8 @@ struct Scene {
     std::vector<Sphere> bounding_spheres;
     std::vector<Triangle> mesh;
     Box mesh_bbox;
+
+    std::vector<std::shared_ptr<Material>> material_ptr;//vector with material pointers
 } g_scene;
 
 bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
@@ -153,15 +155,20 @@ void setupScene(RTContext &rtx, const char *filename)
     auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
     auto material_left = std::make_shared<Dielectric>(1.5);
     auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
+    
+    //Adds the material pointer to a vector with material pointers
+    g_scene.material_ptr.push_back(material_center);
+    g_scene.material_ptr.push_back(material_left);
+    g_scene.material_ptr.push_back(material_right);
+    g_scene.material_ptr.push_back(material_left);
 
-
-   g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
-    /*g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), -0.5f, material_left),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_right),
-        Sphere(glm::vec3(2.0f, 0.0f, 0.0f), 0.5f, material_left),
+    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
+    g_scene.spheres = {
+        Sphere(glm::vec3(2.0f, -0.3f, 0.0f), 0.2f, material_center),
+        Sphere(glm::vec3(-1.0f, -0.1f, -1.0f), -0.4f, material_left),
+        Sphere(glm::vec3(2.0f, 0.0f, 2.0f), 0.5f, material_right),
     };
+    /*
     g_scene.boxes = {
         Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), material_right),
         Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f), material_left),
@@ -198,6 +205,28 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 vertical(0.0f, 2.0f, 0.0f);
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
+    //Changes the material of the speres
+    g_scene.spheres[0].mat_ptr = g_scene.material_ptr[rtx.material_sp1];
+    g_scene.spheres[1].mat_ptr = g_scene.material_ptr[rtx.material_sp2];
+    g_scene.spheres[2].mat_ptr = g_scene.material_ptr[rtx.material_sp3];
+    // Sets the radius of a sphere to positive
+    g_scene.spheres[0].radius = abs(g_scene.spheres[0].radius);
+    g_scene.spheres[1].radius = abs(g_scene.spheres[1].radius);
+    g_scene.spheres[2].radius = abs(g_scene.spheres[2].radius);
+    // If the material is a dielectric shell the radius is set to negative
+    if (rtx.material_sp1 == 3 && (g_scene.spheres[0].radius > 0))
+    {
+        g_scene.spheres[0].radius *= -1;
+    }
+    if (rtx.material_sp2 == 3 && (g_scene.spheres[1].radius > 0))
+    {
+        g_scene.spheres[1].radius *= -1;
+    }
+    if (rtx.material_sp3 == 3 && (g_scene.spheres[2].radius > 0))
+    {
+        g_scene.spheres[2].radius *= -1;
+    }
+    
 
     // You can try parallelising this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
@@ -205,7 +234,7 @@ void updateLine(RTContext &rtx, int y)
 
         float u = (float(x) + 0.5) / (float(nx)-1);
         float v = (float(y) + 0.5) / (float(ny)-1);
-        
+
         if (rtx.antiAliasingOn)
         {
             u = (float(x) + random_double()) / (float(nx)-1);

@@ -138,19 +138,25 @@ void drawImage(Context &ctx)
 // MODIFY THIS FUNCTION
 void showGui(Context &ctx)
 {
-    if (ImGui::SliderInt("Max bounces", &ctx.rtx.max_bounces, 0, 10)) {
-        rt::resetAccumulation(ctx.rtx);
+    //ImGui::Begin("Settings", NULL, 0); 
+    //ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+    if (ImGui::CollapsingHeader("Scene"))
+    {
+        if (ImGui::SliderInt("Max bounces", &ctx.rtx.max_bounces, 0, 10)) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::ColorEdit3("Sky color", &ctx.rtx.sky_color[0])) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::ColorEdit3("Ground color", &ctx.rtx.ground_color[0])) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::Checkbox("Gamma correction", &ctx.gammaCorrectionOn)) { rt::resetAccumulation(ctx.rtx); } 
+        if (ImGui::Checkbox("Anti-aliasing", &ctx.rtx.antiAliasingOn)) { rt::resetAccumulation(ctx.rtx); }
     }
-    if (ImGui::ColorEdit3("Sky color", &ctx.rtx.sky_color[0])) { rt::resetAccumulation(ctx.rtx); }
-    if (ImGui::ColorEdit3("Ground color", &ctx.rtx.ground_color[0])) {
-        rt::resetAccumulation(ctx.rtx);
+    if (ImGui::CollapsingHeader("Materials"))
+    {
+        const char * names[4] = {"Lambertian","Dielectric","Metal","Dielectric Shell"};
+        if (ImGui::SliderInt("Sphere 1", &ctx.rtx.material_sp1, 0, 3, names[ctx.rtx.material_sp1])) {rt::resetAccumulation(ctx.rtx); };
+        if (ImGui::SliderInt("Sphere 2", &ctx.rtx.material_sp2, 0, 3, names[ctx.rtx.material_sp2])) {rt::resetAccumulation(ctx.rtx); };
+        if (ImGui::SliderInt("Sphere 3", &ctx.rtx.material_sp3, 0, 3, names[ctx.rtx.material_sp3])) {rt::resetAccumulation(ctx.rtx); };
     }
-    if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
-    // Add more settings and parameters here
-    // ...
-    if (ImGui::Checkbox("Gamma correction", &ctx.gammaCorrectionOn)) { rt::resetAccumulation(ctx.rtx); } 
-    if (ImGui::Checkbox("Anti-aliasing", &ctx.rtx.antiAliasingOn)) { rt::resetAccumulation(ctx.rtx); }
-
+    
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);
     if (ImGui::Button("Freeze/Resume")) { ctx.rtx.freeze = !ctx.rtx.freeze; }

@@ -240,12 +240,12 @@ void updateBoxes(RTContext& rtx) {
         // Updates the box's current material 
         g_scene.boxes[i].mat_ptr = g_scene.material_ptr[rtx.boxMaterials[i]];
 
-        // Sets the radius of a sphere to positive 
+        // Sets the radius of a box to positive 
         g_scene.boxes[i].radius = glm::abs(g_scene.boxes[i].radius);
 
         bool positiveRadius = glm::all(glm::greaterThan(g_scene.boxes[i].radius, glm::vec3(0)));
         // If the material is a dielectric shell the radius is set to negative
-        if (rtx.sphereMaterials[i] == rtx.HOLLOWGLASS && positiveRadius)
+        if (rtx.boxMaterials[i] == rtx.HOLLOWGLASS && positiveRadius)
         {
             g_scene.boxes[i].radius *= -1;
         }

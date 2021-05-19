@@ -34,13 +34,13 @@ struct RTContext {
     // Indices to determine displayed material of object
     std::vector<int> sphereMaterials;
     std::vector<int> boxMaterials;
-    std::vector<int> meshMaterials;
+    int meshMaterial;
 
-    enum materialIndex {LAMBERTIAN, GLASS, HOLLOWGLASS, YELLOWMETAL, GREYMETAL};
+    enum materialIndex {LAMBERTIAN, YELLOWMETAL, GREYMETAL, GLASS, HOLLOWGLASS};
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);
-void updateImage(RTContext &rtx);
+void updateImage(RTContext &rtx, const char* mesh_filename);
 void resetImage(RTContext &rtx);
 void resetAccumulation(RTContext &rtx);
 

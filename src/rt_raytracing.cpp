@@ -158,10 +158,11 @@ void setupScene(RTContext &rtx, const char *filename)
     //Adds the material pointer to a vector with material pointers
     // First glass element will be used for solid spheres, the second for hollow ones
     g_scene.material_ptr.push_back(materialLambert);
-    g_scene.material_ptr.push_back(materialGlass);
-    g_scene.material_ptr.push_back(materialGlass);
     g_scene.material_ptr.push_back(materialYellowMetal);
     g_scene.material_ptr.push_back(materialGreyMetal);
+    g_scene.material_ptr.push_back(materialGlass);
+    g_scene.material_ptr.push_back(materialGlass);
+    
     
 
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, materialGround);
@@ -180,11 +181,11 @@ void setupScene(RTContext &rtx, const char *filename)
     g_scene.boxes = {
         Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), materialYellowMetal),
         Box(glm::vec3(1.0f, -0.25f, -0.5f), glm::vec3(0.25f), materialGlass),
-        Box(glm::vec3(-1.0f, -0.5f, 1.0f), glm::vec3(0.25f), materialYellowMetal),
+        Box(glm::vec3(-1.0f, -0.5f, 1.0f), glm::vec3(0.25f), materialGreyMetal),
     };
     rtx.boxMaterials.push_back(rtx.YELLOWMETAL);
     rtx.boxMaterials.push_back(rtx.GLASS);
-    rtx.boxMaterials.push_back(rtx.YELLOWMETAL);
+    rtx.boxMaterials.push_back(rtx.GREYMETAL);
     
 
     cg::OBJMesh mesh;
@@ -207,7 +208,7 @@ void setupScene(RTContext &rtx, const char *filename)
         maxVert = glm::max(glm::max(glm::max(maxVert, v0), v1), v2);
         minVert = glm::min(glm::min(glm::min(minVert, v0), v1), v2);
     }
-    rtx.meshMaterials.push_back(rtx.GREYMETAL);
+    rtx.meshMaterial = rtx.GREYMETAL;
 
     glm::vec3 meshPos =  minVert + maxVert * (1 / 2.0f);
     float meshRadius = glm::length(maxVert - minVert) / 2;
@@ -252,8 +253,27 @@ void updateBoxes(RTContext& rtx) {
     }
 }
 
+void updateMesh(RTContext& rtx, const char* filename) {
+
+    cg::OBJMesh mesh;
+    cg::objMeshLoad(mesh, filename);
+    g_scene.mesh.clear();
+
+    for (int i = 0; i < mesh.indices.size(); i += 3) {
+        int i0 = mesh.indices[i + 0];
+        int i1 = mesh.indices[i + 1];
+        int i2 = mesh.indices[i + 2];
+
+        glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
+        g_scene.mesh.push_back(Triangle(v0, v1, v2, g_scene.material_ptr[rtx.meshMaterial]));
+
+    }
+}
+
 // MODIFY THIS FUNCTION!
-void updateLine(RTContext &rtx, int y)
+void updateLine(RTContext &rtx, int y, const char* filename)
 {
     int nx = rtx.width;
     int ny = rtx.height;
@@ -269,6 +289,10 @@ void updateLine(RTContext &rtx, int y)
 
     //Updates the material of the boxes
     updateBoxes(rtx);
+
+    if (g_scene.mesh.front().mat_ptr != g_scene.material_ptr[rtx.meshMaterial]) {
+        updateMesh(rtx, filename);
+    }
 
     // You can try parallelising this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
@@ -304,12 +328,12 @@ void updateLine(RTContext &rtx, int y)
     }
 }
 
-void updateImage(RTContext &rtx)
+void updateImage(RTContext &rtx, const char* filename)
 {
     if (rtx.freeze) return;                    // Skip update
     rtx.image.resize(rtx.width * rtx.height);  // Just in case...
 
-    updateLine(rtx, rtx.current_line % rtx.height);
+    updateLine(rtx, rtx.current_line % rtx.height, filename);
 
     if (rtx.current_frame < rtx.max_frames) {
         rtx.current_line += 1;

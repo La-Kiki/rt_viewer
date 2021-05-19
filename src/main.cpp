@@ -28,6 +28,7 @@ struct Context {
     float aspect;
     GLFWwindow *window;
     GLuint program;
+    std::string filenamePath;
     cg::Trackball trackball;
     GLuint emptyVAO;
     rt::RTContext rtx;
@@ -98,6 +99,7 @@ void init(Context &ctx)
 
     // Set up ray tracing scene
     rt::setupScene(ctx.rtx, (modelDir() + "bunny_lowpoly.obj").c_str());
+    ctx.filenamePath = (modelDir() + "bunny_lowpoly.obj").c_str();
 
     initializeTrackball(ctx);
 }
@@ -110,7 +112,7 @@ void updateRayTracing(Context &ctx)
     // Render as much as we can within the current frame
     float tic = glfwGetTime();
     while (true) {
-        rt::updateImage(ctx.rtx);
+        rt::updateImage(ctx.rtx, ctx.filenamePath.c_str());
         if (glfwGetTime() - tic > (1.0f / 60.0f)) { break; }
     }
 }
@@ -150,7 +152,7 @@ void showGui(Context &ctx)
     }
     if (ImGui::CollapsingHeader("Materials"))
     {
-        const char * names[5] = {"Lambertian", "Dielectric", "Dielectric Shell", "Yellow Metal", "Grey Metal"};
+        const char * names[5] = {"Lambertian", "Yellow Metal", "Grey Metal", "Dielectric", "Dielectric Shell" };
 
         // Controls for each sphere's material property
         int sphereNum = ctx.rtx.sphereMaterials.size();
@@ -171,16 +173,8 @@ void showGui(Context &ctx)
             };
         }
 
-        /*
-        int meshNum = ctx.rtx.meshMaterials.size();
-        for (int i = 0; i < meshNum; ++i) {
-            std::string objectName = "Mesh " + std::to_string(i + 1);
-
-            if (ImGui::SliderInt(objectName.c_str(), &ctx.rtx.meshMaterials[i], 0, 4, names[ctx.rtx.meshMaterials[i]])) {
-                rt::resetAccumulation(ctx.rtx);
-            };
-        }
-        */
+        // Dielectric shell not sensible for mesh
+        if (ImGui::SliderInt("Mesh 1" , &ctx.rtx.meshMaterial, 0, 3, names[ctx.rtx.meshMaterial])) { rt::resetAccumulation(ctx.rtx); }
     }
     ImGui::Separator();
     ImGui::Text("Progress");

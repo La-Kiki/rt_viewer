@@ -150,10 +150,37 @@ void showGui(Context &ctx)
     }
     if (ImGui::CollapsingHeader("Materials"))
     {
-        const char * names[4] = {"Lambertian","Dielectric","Metal","Dielectric Shell"};
-        if (ImGui::SliderInt("Sphere 1", &ctx.rtx.material_sp1, 0, 3, names[ctx.rtx.material_sp1])) {rt::resetAccumulation(ctx.rtx); };
-        if (ImGui::SliderInt("Sphere 2", &ctx.rtx.material_sp2, 0, 3, names[ctx.rtx.material_sp2])) {rt::resetAccumulation(ctx.rtx); };
-        if (ImGui::SliderInt("Sphere 3", &ctx.rtx.material_sp3, 0, 3, names[ctx.rtx.material_sp3])) {rt::resetAccumulation(ctx.rtx); };
+        const char * names[5] = {"Lambertian", "Dielectric", "Dielectric Shell", "Yellow Metal", "Grey Metal"};
+
+        // Controls for each sphere's material property
+        int sphereNum = ctx.rtx.sphereMaterials.size();
+        for (int i = 0; i < sphereNum; ++i) {
+            std::string objectName = "Sphere " + std::to_string(i +1);
+
+            if (ImGui::SliderInt(objectName.c_str(), &ctx.rtx.sphereMaterials[i], 0, 4, names[ctx.rtx.sphereMaterials[i]])) {
+                rt::resetAccumulation(ctx.rtx);
+            };
+        }
+        // Controls for each box's material property
+        int boxNum = ctx.rtx.boxMaterials.size();
+        for (int i = 0; i < boxNum; ++i) {
+            std::string objectName = "Box " + std::to_string(i + 1);
+
+            if (ImGui::SliderInt(objectName.c_str(), &ctx.rtx.boxMaterials[i], 0, 4, names[ctx.rtx.boxMaterials[i]])) {
+                rt::resetAccumulation(ctx.rtx);
+            };
+        }
+
+        /*
+        int meshNum = ctx.rtx.meshMaterials.size();
+        for (int i = 0; i < meshNum; ++i) {
+            std::string objectName = "Mesh " + std::to_string(i + 1);
+
+            if (ImGui::SliderInt(objectName.c_str(), &ctx.rtx.meshMaterials[i], 0, 4, names[ctx.rtx.meshMaterials[i]])) {
+                rt::resetAccumulation(ctx.rtx);
+            };
+        }
+        */
     }
     ImGui::Separator();
     ImGui::Text("Progress");

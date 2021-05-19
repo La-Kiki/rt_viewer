@@ -20,7 +20,6 @@ struct Scene {
     std::vector<Sphere> bounding_spheres;
     std::vector<Triangle> mesh;
     Box mesh_bbox;
-
     std::vector<std::shared_ptr<Material>> material_ptr;//vector with material pointers
 } g_scene;
 
@@ -54,6 +53,7 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
             for (int j = 0; j < g_scene.mesh.size(); ++j) {
                 if (g_scene.mesh[j].hit(r, t_min, closest_so_far, temp_rec)) {
                     hit_anything = true;
+
                     closest_so_far = temp_rec.t;
                     rec = temp_rec;
                 }
@@ -97,7 +97,7 @@ glm::vec3 random_in_hemisphere(const glm::vec3& normal) {
 bool near_zero(glm::vec3 e) {
     // Return true if the vector is close to zero in all dimensions.
     const auto s = 1e-8;
-    return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+    return (fabs(e.x) < s) && (fabs(e.y) < s) && (fabs(e.z) < s);
 }
 
 
@@ -125,10 +125,9 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     HitRecord rec;
     if (hit_world(r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
-        if (rtx.show_normals) { 
-            glm::vec3 normal = rec.normal;
-            if (rec.radius < 0) { normal = -normal; }
-            return normal * 0.5f + 0.5f; }
+        if (rtx.show_normals) {
+            return rec.normal * 0.5f + 0.5f; 
+        }
         
 
         Ray scattered;
@@ -138,7 +137,6 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         }
 
         return glm::vec3(0, 0, 0);
-        // ...
     }
 
     // If no hit, return sky color
@@ -151,46 +149,106 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    auto material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
-    auto material_left = std::make_shared<Dielectric>(1.5);
-    auto material_right = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
+    auto materialGround = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    auto materialLambert = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
+    auto materialGlass = std::make_shared<Dielectric>(1.5);
+    auto materialYellowMetal = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
+    auto materialGreyMetal = std::make_shared<Metal>(glm::vec3(0.77, 0.78, 0.82), 0.0);
     
     //Adds the material pointer to a vector with material pointers
-    g_scene.material_ptr.push_back(material_center);
-    g_scene.material_ptr.push_back(material_left);
-    g_scene.material_ptr.push_back(material_right);
-    g_scene.material_ptr.push_back(material_left);
+    // First glass element will be used for solid spheres, the second for hollow ones
+    g_scene.material_ptr.push_back(materialLambert);
+    g_scene.material_ptr.push_back(materialGlass);
+    g_scene.material_ptr.push_back(materialGlass);
+    g_scene.material_ptr.push_back(materialYellowMetal);
+    g_scene.material_ptr.push_back(materialGreyMetal);
+    
 
-    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
+    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, materialGround);
     g_scene.spheres = {
-        Sphere(glm::vec3(2.0f, -0.3f, 0.0f), 0.2f, material_center),
-        Sphere(glm::vec3(-1.0f, -0.1f, -1.0f), -0.4f, material_left),
-        Sphere(glm::vec3(2.0f, 0.0f, 2.0f), 0.5f, material_right),
+        Sphere(glm::vec3(2.0f, -0.3f, 0.0f), 0.2f, materialLambert),
+        Sphere(glm::vec3(-1.0f, -0.1f, -1.0f), -0.4f, materialGlass),
+        Sphere(glm::vec3(-1.5f, 0.0f, 0.5f), 0.5f, materialYellowMetal),
     };
-    /*
+    //Integer corresponds to material_ptr in g_scene - the material added when
+    // creating sphere
+    rtx.sphereMaterials.push_back(rtx.LAMBERTIAN);
+    rtx.sphereMaterials.push_back(rtx.HOLLOWGLASS);
+    rtx.sphereMaterials.push_back(rtx.YELLOWMETAL);
+
+    
     g_scene.boxes = {
-        Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), material_right),
-        Box(glm::vec3(1.0f, -0.25f, 1.0f), glm::vec3(0.25f), material_left),
-        Box(glm::vec3(-1.0f, -0.25f, 1.0f), glm::vec3(0.25f), material_right),
-    };*/
-
-
-    // Bounding sphere roughly same size and placement as mesh below 
-    // Multiple bounding spheres can be added for the same mesh if needed
-    g_scene.bounding_spheres = { Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f) };
+        Box(glm::vec3(0.0f, -0.5f, 1.0f), glm::vec3(0.25f), materialYellowMetal),
+        Box(glm::vec3(1.0f, -0.25f, -0.5f), glm::vec3(0.25f), materialGlass),
+        Box(glm::vec3(-1.0f, -0.5f, 1.0f), glm::vec3(0.25f), materialYellowMetal),
+    };
+    rtx.boxMaterials.push_back(rtx.YELLOWMETAL);
+    rtx.boxMaterials.push_back(rtx.GLASS);
+    rtx.boxMaterials.push_back(rtx.YELLOWMETAL);
+    
 
     cg::OBJMesh mesh;
     cg::objMeshLoad(mesh, filename);
     g_scene.mesh.clear();
+
+    glm::vec3 maxVert;
+    glm::vec3 minVert;
+
     for (int i = 0; i < mesh.indices.size(); i += 3) {
         int i0 = mesh.indices[i + 0];
         int i1 = mesh.indices[i + 1];
         int i2 = mesh.indices[i + 2];
+
         glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
         glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
         glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
-        g_scene.mesh.push_back(Triangle(v0, v1, v2, material_center));
+        g_scene.mesh.push_back(Triangle(v0, v1, v2, materialGreyMetal));
+
+        maxVert = glm::max(glm::max(glm::max(maxVert, v0), v1), v2);
+        minVert = glm::min(glm::min(glm::min(minVert, v0), v1), v2);
+    }
+    rtx.meshMaterials.push_back(rtx.GREYMETAL);
+
+    glm::vec3 meshPos =  minVert + maxVert * (1 / 2.0f);
+    float meshRadius = glm::length(maxVert - minVert) / 2;
+
+    // Bounding sphere roughly same size and placement as mesh below 
+   // Multiple bounding spheres can be added for the same mesh if needed
+    g_scene.bounding_spheres = { Sphere(meshPos, meshRadius)};
+}
+
+void updateSpheres(RTContext& rtx) {
+    for (int i = 0; i < g_scene.spheres.size(); ++i) {
+
+        // Updates the sphere's current material 
+        g_scene.spheres[i].mat_ptr = g_scene.material_ptr[rtx.sphereMaterials[i]];
+
+        // Sets the radius of a sphere to positive 
+        g_scene.spheres[i].radius = abs(g_scene.spheres[i].radius);
+
+        // If the material is a dielectric shell the radius is set to negative
+        if (rtx.sphereMaterials[i] == rtx.HOLLOWGLASS && (g_scene.spheres[i].radius > 0.0))
+        {
+            g_scene.spheres[i].radius *= -1;
+        }
+    }
+}
+
+void updateBoxes(RTContext& rtx) {
+    for (int i = 0; i < g_scene.boxes.size(); ++i) {
+
+        // Updates the box's current material 
+        g_scene.boxes[i].mat_ptr = g_scene.material_ptr[rtx.boxMaterials[i]];
+
+        // Sets the radius of a sphere to positive 
+        g_scene.boxes[i].radius = glm::abs(g_scene.boxes[i].radius);
+
+        bool positiveRadius = glm::all(glm::greaterThan(g_scene.boxes[i].radius, glm::vec3(0)));
+        // If the material is a dielectric shell the radius is set to negative
+        if (rtx.sphereMaterials[i] == rtx.HOLLOWGLASS && positiveRadius)
+        {
+            g_scene.boxes[i].radius *= -1;
+        }
     }
 }
 
@@ -205,40 +263,24 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 vertical(0.0f, 2.0f, 0.0f);
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
-    //Changes the material of the speres
-    g_scene.spheres[0].mat_ptr = g_scene.material_ptr[rtx.material_sp1];
-    g_scene.spheres[1].mat_ptr = g_scene.material_ptr[rtx.material_sp2];
-    g_scene.spheres[2].mat_ptr = g_scene.material_ptr[rtx.material_sp3];
-    // Sets the radius of a sphere to positive
-    g_scene.spheres[0].radius = abs(g_scene.spheres[0].radius);
-    g_scene.spheres[1].radius = abs(g_scene.spheres[1].radius);
-    g_scene.spheres[2].radius = abs(g_scene.spheres[2].radius);
-    // If the material is a dielectric shell the radius is set to negative
-    if (rtx.material_sp1 == 3 && (g_scene.spheres[0].radius > 0))
-    {
-        g_scene.spheres[0].radius *= -1;
-    }
-    if (rtx.material_sp2 == 3 && (g_scene.spheres[1].radius > 0))
-    {
-        g_scene.spheres[1].radius *= -1;
-    }
-    if (rtx.material_sp3 == 3 && (g_scene.spheres[2].radius > 0))
-    {
-        g_scene.spheres[2].radius *= -1;
-    }
-    
+
+    //Updates the material of the spheres
+    updateSpheres(rtx);
+
+    //Updates the material of the boxes
+    updateBoxes(rtx);
 
     // You can try parallelising this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
     for (int x = 0; x < nx; ++x) {
 
-        float u = (float(x) + 0.5) / (float(nx)-1);
-        float v = (float(y) + 0.5) / (float(ny)-1);
+        float u = (float(x) + 0.5) / (float(nx));
+        float v = (float(y) + 0.5) / (float(ny));
 
         if (rtx.antiAliasingOn)
         {
-            u = (float(x) + random_double()) / (float(nx)-1);
-            v = (float(y) + random_double()) / (float(ny)-1);
+            u = (float(x) + random_double()) / (float(nx));
+            v = (float(y) + random_double()) / (float(ny));
         }
         
         Ray r(origin, lower_left_corner + u * horizontal + v * vertical);

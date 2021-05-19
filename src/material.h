@@ -18,7 +18,7 @@ public:
     Lambertian(const glm::vec3 &a) : albedo(a) {}
 
     virtual bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const override {
-        auto scatter_direction = rec.normal + random_in_hemisphere(rec.normal); //glm::normalize(rt::random_in_unit_sphere());
+        auto scatter_direction = rec.normal + glm::normalize(rt::random_in_unit_sphere());
         if (rt::near_zero(scatter_direction)) {
             scatter_direction = rec.normal;
         }

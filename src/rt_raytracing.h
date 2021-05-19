@@ -29,10 +29,14 @@ struct RTContext {
     glm::vec3 ground_color = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 sky_color = glm::vec3(0.5f, 0.7f, 1.0f);
     bool show_normals = false;
+
     bool antiAliasingOn = true;
-    int material_sp1 = 0;
-    int material_sp2 = 3;
-    int material_sp3 = 2;
+    // Indices to determine displayed material of object
+    std::vector<int> sphereMaterials;
+    std::vector<int> boxMaterials;
+    std::vector<int> meshMaterials;
+
+    enum materialIndex {LAMBERTIAN, GLASS, HOLLOWGLASS, YELLOWMETAL, GREYMETAL};
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);

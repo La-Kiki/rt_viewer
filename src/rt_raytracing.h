@@ -34,8 +34,9 @@ struct RTContext {
     glm::vec3 groundSphereColor = glm::vec3(0.8, 0.8, 0.0);
     int groundMaterial = 2;
     glm::vec3 lambertianColor = glm::vec3(0.1, 0.2, 0.5);
-    float metalFuzz = 0.0;
+    float metalFuzz1 = 0.0;
     glm::vec3 metalColor1 = glm::vec3(0.8, 0.6, 0.2);
+    float metalFuzz2 = 0.0;
     glm::vec3 metalColor2 = glm::vec3(0.77, 0.78, 0.82);
     float dielectricRefraction = 1.5;
 

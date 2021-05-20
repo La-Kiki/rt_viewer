@@ -154,9 +154,11 @@ void showGui(Context &ctx)
     if (ImGui::CollapsingHeader("Material properties")) {
         if (ImGui::SliderFloat("Glass refraction", &ctx.rtx.dielectricRefraction, 1.5, 1.65)) { rt::resetAccumulation(ctx.rtx); }
 
+        if (ImGui::SliderFloat("Metal fuzz 1", &ctx.rtx.metalFuzz1, 0.0, 1.0)) { rt::resetAccumulation(ctx.rtx); }
         if (ImGui::ColorEdit3("Metal color 1", &ctx.rtx.metalColor1[0])) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::SliderFloat("Metal fuzz 2", &ctx.rtx.metalFuzz2, 0.0, 1.0)) { rt::resetAccumulation(ctx.rtx); }
         if (ImGui::ColorEdit3("Metal color 2", &ctx.rtx.metalColor2[0])) { rt::resetAccumulation(ctx.rtx); }
-        if (ImGui::SliderFloat("Metal fuzz", &ctx.rtx.metalFuzz, 0.0, 1.0)) { rt::resetAccumulation(ctx.rtx); }
+        
 
         if (ImGui::ColorEdit3("Matte color", &ctx.rtx.lambertianColor[0])) { rt::resetAccumulation(ctx.rtx); }
     }

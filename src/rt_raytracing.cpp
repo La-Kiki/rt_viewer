@@ -166,8 +166,8 @@ void setupScene(RTContext &rtx, const char *filename)
     auto materialGround = std::make_shared<Lambertian>(glm::vec3(rtx.groundSphereColor));
     auto materialLambert = std::make_shared<Lambertian>(rtx.lambertianColor);
     auto materialGlass = std::make_shared<Dielectric>(rtx.dielectricRefraction);
-    auto materialYellowMetal = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), rtx.metalFuzz);
-    auto materialGreyMetal = std::make_shared<Metal>(glm::vec3(0.77, 0.78, 0.82), rtx.metalFuzz);
+    auto materialYellowMetal = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), rtx.metalFuzz1);
+    auto materialGreyMetal = std::make_shared<Metal>(glm::vec3(0.77, 0.78, 0.82), rtx.metalFuzz2);
     
     //Adds the material pointer to a vector with material pointers
     // First glass element will be used for solid spheres, the second for hollow ones
@@ -294,20 +294,34 @@ void updateMesh(RTContext& rtx, const char* filename) {
 void updateMaterialPtrs(RTContext &rtx) {
 
     //Each material pointer must be converted to its subclass
+    // If the ground sphere belongs to any of the materials, its material pointer will be changed as well if needed
+
     auto lambert = *std::static_pointer_cast<Lambertian>(g_scene.material_ptr[rtx.LAMBERTIAN]).get();
 
     if (lambert.getAlbedo() != rtx.lambertianColor) {
         g_scene.material_ptr[rtx.LAMBERTIAN] = std::make_shared<Lambertian>(rtx.lambertianColor);
+
+        if (rtx.groundMaterial == rtx.LAMBERTIAN) {
+            g_scene.ground.mat_ptr = std::make_shared<Lambertian>(rtx.groundSphereColor);
+        }
     }
     
     auto metal1 = *std::static_pointer_cast<Metal>(g_scene.material_ptr[rtx.YELLOWMETAL]).get();
-    if (metal1.getAlbedo() != rtx.metalColor1 || metal1.getMetalFuzz() != rtx.metalFuzz) {
-        g_scene.material_ptr[rtx.YELLOWMETAL] = std::make_shared<Metal>(rtx.metalColor1, rtx.metalFuzz);
+    if (metal1.getAlbedo() != rtx.metalColor1 || metal1.getMetalFuzz() != rtx.metalFuzz1) {
+        g_scene.material_ptr[rtx.YELLOWMETAL] = std::make_shared<Metal>(rtx.metalColor1, rtx.metalFuzz1);
+
+        if (rtx.groundMaterial == rtx.YELLOWMETAL) {
+            g_scene.ground.mat_ptr = std::make_shared<Metal>(rtx.metalColor1, rtx.metalFuzz1);
+        }
     }
 
     auto metal2 = *std::static_pointer_cast<Metal>(g_scene.material_ptr[rtx.GREYMETAL]).get();
-    if (metal2.getAlbedo() != rtx.metalColor2 || metal2.getMetalFuzz() != rtx.metalFuzz) {
-        g_scene.material_ptr[rtx.GREYMETAL] = std::make_shared<Metal>(rtx.metalColor2, rtx.metalFuzz);
+    if (metal2.getAlbedo() != rtx.metalColor2 || metal2.getMetalFuzz() != rtx.metalFuzz2) {
+        g_scene.material_ptr[rtx.GREYMETAL] = std::make_shared<Metal>(rtx.metalColor2, rtx.metalFuzz2);
+
+        if (rtx.groundMaterial == rtx.GREYMETAL) {
+            g_scene.ground.mat_ptr = std::make_shared<Metal>(rtx.metalColor2, rtx.metalFuzz2);
+        }
     }
 
     // If refraction changed on one of the glass pointers, both need to update
@@ -315,21 +329,8 @@ void updateMaterialPtrs(RTContext &rtx) {
     if (dielectric.getRefraction() != rtx.dielectricRefraction) {
         g_scene.material_ptr[rtx.GLASS] = std::make_shared <Dielectric>(rtx.dielectricRefraction);
         g_scene.material_ptr[rtx.HOLLOWGLASS] = std::make_shared <Dielectric>(rtx.dielectricRefraction);
-    }
 
-    auto ground = *std::static_pointer_cast<Lambertian>(g_scene.material_ptr[rtx.LAMBERTIAN]).get();
-    if (ground.getAlbedo() != rtx.groundSphereColor) {
-        // Choose correct constructor for ground material pointer
-        if (rtx.groundMaterial == rtx.LAMBERTIAN) {
-            g_scene.ground.mat_ptr = std::make_shared<Lambertian>(rtx.groundSphereColor);
-        }
-        else if (rtx.groundMaterial == rtx.YELLOWMETAL) {
-            g_scene.ground.mat_ptr = std::make_shared<Metal>(rtx.metalColor1, rtx.metalFuzz);
-        }
-        else if (rtx.groundMaterial == rtx.GREYMETAL) {
-            g_scene.ground.mat_ptr = std::make_shared<Metal>(rtx.metalColor2, rtx.metalFuzz);
-        }
-        else if (rtx.groundMaterial == rtx.GLASS || rtx.groundMaterial == rtx.HOLLOWGLASS) {
+        if (rtx.groundMaterial == rtx.GLASS || rtx.groundMaterial == rtx.HOLLOWGLASS) {
             g_scene.ground.mat_ptr = std::make_shared <Dielectric>(rtx.dielectricRefraction);
         }
     }

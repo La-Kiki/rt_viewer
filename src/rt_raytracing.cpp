@@ -301,12 +301,12 @@ void updateMaterialPtrs(RTContext &rtx) {
     }
     
     auto metal1 = *std::static_pointer_cast<Metal>(g_scene.material_ptr[rtx.YELLOWMETAL]).get();
-    if (metal1.getAlbedo() != rtx.metalColor1) {
+    if (metal1.getAlbedo() != rtx.metalColor1 || metal1.getMetalFuzz() != rtx.metalFuzz) {
         g_scene.material_ptr[rtx.YELLOWMETAL] = std::make_shared<Metal>(rtx.metalColor1, rtx.metalFuzz);
     }
 
     auto metal2 = *std::static_pointer_cast<Metal>(g_scene.material_ptr[rtx.GREYMETAL]).get();
-    if (metal2.getAlbedo() != rtx.metalColor2) {
+    if (metal2.getAlbedo() != rtx.metalColor2 || metal2.getMetalFuzz() != rtx.metalFuzz) {
         g_scene.material_ptr[rtx.GREYMETAL] = std::make_shared<Metal>(rtx.metalColor2, rtx.metalFuzz);
     }
 
@@ -360,8 +360,7 @@ void updateLine(RTContext &rtx, int y, const char* filename)
     if (rtx.showBoxes) {
         updateBoxes(rtx);
     }
-    
-
+   
     if (rtx.showMesh) {
         if (g_scene.mesh.front().mat_ptr != g_scene.material_ptr[rtx.meshMaterial]) {
             updateMesh(rtx, filename);

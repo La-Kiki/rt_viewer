@@ -52,6 +52,10 @@ public:
         return albedo;
     }
 
+    virtual double getMetalFuzz() {
+        return fuzz;
+    }
+
 public:
     glm::vec3 albedo;
     double fuzz;

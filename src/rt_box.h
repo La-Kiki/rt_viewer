@@ -7,6 +7,7 @@ namespace rt {
 class Box : public Hitable {
   public:
     Box() {}
+    Box(const glm::vec3& cen, const glm::vec3 r) : center(cen), radius(r) {};
     Box(const glm::vec3 &cen, const glm::vec3 r, std::shared_ptr<Material> m) : center(cen), radius(r), mat_ptr(m) {};
     virtual bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 

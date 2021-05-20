@@ -150,10 +150,22 @@ void showGui(Context &ctx)
         if (ImGui::Checkbox("Gamma correction", &ctx.gammaCorrectionOn)) { rt::resetAccumulation(ctx.rtx); } 
         if (ImGui::Checkbox("Anti-aliasing", &ctx.rtx.antiAliasingOn)) { rt::resetAccumulation(ctx.rtx); }
     }
-    if (ImGui::CollapsingHeader("Materials"))
+
+    if (ImGui::CollapsingHeader("Material properties")) {
+        if (ImGui::SliderFloat("Glass refraction", &ctx.rtx.dielectricRefraction, 1.5, 1.65)) { rt::resetAccumulation(ctx.rtx); }
+
+        if (ImGui::ColorEdit3("Metal color 1", &ctx.rtx.metalColor1[0])) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::ColorEdit3("Metal color 2", &ctx.rtx.metalColor2[0])) { rt::resetAccumulation(ctx.rtx); }
+        if (ImGui::SliderFloat("Metal fuzz", &ctx.rtx.metalFuzz, 0.0, 1.0)) { rt::resetAccumulation(ctx.rtx); }
+
+        if (ImGui::ColorEdit3("Matte color", &ctx.rtx.lambertianColor[0])) { rt::resetAccumulation(ctx.rtx); }
+    }
+
+    if (ImGui::CollapsingHeader("Objects"))
     {
         const char * names[5] = {"Lambertian", "Yellow Metal", "Grey Metal", "Dielectric", "Dielectric Shell" };
 
+        if (ImGui::Checkbox("Show spheres", &ctx.rtx.showSpheres)) { rt::resetAccumulation(ctx.rtx); }
         // Controls for each sphere's material property
         int sphereNum = ctx.rtx.sphereMaterials.size();
         for (int i = 0; i < sphereNum; ++i) {
@@ -163,6 +175,9 @@ void showGui(Context &ctx)
                 rt::resetAccumulation(ctx.rtx);
             };
         }
+        if (ImGui::SliderInt("Ground material", &ctx.rtx.groundMaterial, 0, 4, names[ctx.rtx.groundMaterial])) { rt::resetAccumulation(ctx.rtx); }
+
+        if (ImGui::Checkbox("Show boxes", &ctx.rtx.showBoxes)) { rt::resetAccumulation(ctx.rtx); }
         // Controls for each box's material property
         int boxNum = ctx.rtx.boxMaterials.size();
         for (int i = 0; i < boxNum; ++i) {
@@ -173,6 +188,7 @@ void showGui(Context &ctx)
             };
         }
 
+        if (ImGui::Checkbox("Show mesh", &ctx.rtx.showMesh)) { rt::resetAccumulation(ctx.rtx); }
         // Dielectric shell not sensible for mesh
         if (ImGui::SliderInt("Mesh 1" , &ctx.rtx.meshMaterial, 0, 3, names[ctx.rtx.meshMaterial])) { rt::resetAccumulation(ctx.rtx); }
     }

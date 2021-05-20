@@ -20,10 +20,11 @@ struct Scene {
     std::vector<Sphere> bounding_spheres;
     std::vector<Triangle> mesh;
     Box mesh_bbox;
+    std::vector<Box> boundingBoxes;
     std::vector<std::shared_ptr<Material>> material_ptr;//vector with material pointers
 } g_scene;
 
-bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
+bool hit_world(RTContext &rtx, const Ray &r, float t_min, float t_max, HitRecord &rec)
 {
     HitRecord temp_rec;
     bool hit_anything = false;
@@ -34,31 +35,43 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
         closest_so_far = temp_rec.t;
         rec = temp_rec;
     }
-    for (int i = 0; i < g_scene.spheres.size(); ++i) {
-        if (g_scene.spheres[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+    if (rtx.showSpheres) {
+        for (int i = 0; i < g_scene.spheres.size(); ++i) {
+            if (g_scene.spheres[i].hit(r, t_min, closest_so_far, temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
         }
     }
-    for (int i = 0; i < g_scene.boxes.size(); ++i) {
-        if (g_scene.boxes[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+   if (rtx.showBoxes) {
+        for (int i = 0; i < g_scene.boxes.size(); ++i) {
+            if (g_scene.boxes[i].hit(r, t_min, closest_so_far, temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
         }
     }
-    for (int i = 0; i < g_scene.bounding_spheres.size(); ++i) {
-        if (g_scene.bounding_spheres[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            for (int j = 0; j < g_scene.mesh.size(); ++j) {
-                if (g_scene.mesh[j].hit(r, t_min, closest_so_far, temp_rec)) {
-                    hit_anything = true;
 
-                    closest_so_far = temp_rec.t;
-                    rec = temp_rec;
+    if (rtx.showMesh) {
+        /* FOR BOUNDING SPHERES
+        for (int i = 0; i < g_scene.bounding_spheres.size(); ++i) {
+            if (g_scene.bounding_spheres[i].hit(r, t_min, closest_so_far, temp_rec)) {
+            */
+        for (int i = 0; i < g_scene.boundingBoxes.size(); ++i) {
+            if (g_scene.boundingBoxes[i].hit(r, t_min, closest_so_far, temp_rec)) {
+                for (int j = 0; j < g_scene.mesh.size(); ++j) {
+                    if (g_scene.mesh[j].hit(r, t_min, closest_so_far, temp_rec)) {
+                        hit_anything = true;
+
+                        closest_so_far = temp_rec.t;
+                        rec = temp_rec;
+                    }
                 }
             }
         }
+        
     }
     return hit_anything;
 }
@@ -123,7 +136,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     if (max_bounces < 0) return glm::vec3(0.0f);
 
     HitRecord rec;
-    if (hit_world(r, 0.001f, 9999.0f, rec)) {
+    if (hit_world(rtx, r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) {
             return rec.normal * 0.5f + 0.5f; 
@@ -149,11 +162,11 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    auto materialGround = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
-    auto materialLambert = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
-    auto materialGlass = std::make_shared<Dielectric>(1.5);
-    auto materialYellowMetal = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0);
-    auto materialGreyMetal = std::make_shared<Metal>(glm::vec3(0.77, 0.78, 0.82), 0.0);
+    auto materialGround = std::make_shared<Lambertian>(glm::vec3(rtx.groundSphereColor));
+    auto materialLambert = std::make_shared<Lambertian>(rtx.lambertianColor);
+    auto materialGlass = std::make_shared<Dielectric>(rtx.dielectricRefraction);
+    auto materialYellowMetal = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), rtx.metalFuzz);
+    auto materialGreyMetal = std::make_shared<Metal>(glm::vec3(0.77, 0.78, 0.82), rtx.metalFuzz);
     
     //Adds the material pointer to a vector with material pointers
     // First glass element will be used for solid spheres, the second for hollow ones
@@ -169,13 +182,16 @@ void setupScene(RTContext &rtx, const char *filename)
     g_scene.spheres = {
         Sphere(glm::vec3(2.0f, -0.3f, 0.0f), 0.2f, materialLambert),
         Sphere(glm::vec3(-1.0f, -0.1f, -1.0f), -0.4f, materialGlass),
+        Sphere(glm::vec3(-1.0f, -0.2f, -0.6f), 0.3f, materialGlass),
         Sphere(glm::vec3(-1.5f, 0.0f, 0.5f), 0.5f, materialYellowMetal),
     };
-    //Integer corresponds to material_ptr in g_scene - the material added when
-    // creating sphere
+    //Enum corresponds to material_ptr index for each sphere in g_scene - 
+    // the material used when creating sphere
     rtx.sphereMaterials.push_back(rtx.LAMBERTIAN);
     rtx.sphereMaterials.push_back(rtx.HOLLOWGLASS);
+    rtx.sphereMaterials.push_back(rtx.GLASS);
     rtx.sphereMaterials.push_back(rtx.YELLOWMETAL);
+    
 
     
     g_scene.boxes = {
@@ -188,34 +204,37 @@ void setupScene(RTContext &rtx, const char *filename)
     rtx.boxMaterials.push_back(rtx.GREYMETAL);
     
 
-    cg::OBJMesh mesh;
-    cg::objMeshLoad(mesh, filename);
-    g_scene.mesh.clear();
+        cg::OBJMesh mesh;
+        cg::objMeshLoad(mesh, filename);
+        g_scene.mesh.clear();
 
-    glm::vec3 maxVert;
-    glm::vec3 minVert;
+        glm::vec3 maxVert;
+        glm::vec3 minVert;
 
-    for (int i = 0; i < mesh.indices.size(); i += 3) {
-        int i0 = mesh.indices[i + 0];
-        int i1 = mesh.indices[i + 1];
-        int i2 = mesh.indices[i + 2];
+        for (int i = 0; i < mesh.indices.size(); i += 3) {
+            int i0 = mesh.indices[i + 0];
+            int i1 = mesh.indices[i + 1];
+            int i2 = mesh.indices[i + 2];
 
-        glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
-        glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
-        glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
-        g_scene.mesh.push_back(Triangle(v0, v1, v2, materialGreyMetal));
+            glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
+            glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
+            glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
+            g_scene.mesh.push_back(Triangle(v0, v1, v2, materialGreyMetal));
 
-        maxVert = glm::max(glm::max(glm::max(maxVert, v0), v1), v2);
-        minVert = glm::min(glm::min(glm::min(minVert, v0), v1), v2);
-    }
-    rtx.meshMaterial = rtx.GREYMETAL;
+            maxVert = glm::max(glm::max(glm::max(maxVert, v0), v1), v2);
+            minVert = glm::min(glm::min(glm::min(minVert, v0), v1), v2);
+        }
+        rtx.meshMaterial = rtx.GREYMETAL;
 
-    glm::vec3 meshPos =  minVert + maxVert * (1 / 2.0f);
-    float meshRadius = glm::length(maxVert - minVert) / 2;
+        glm::vec3 meshPos = minVert + maxVert * (1 / 2.0f);
+        //float meshRadius = glm::length(maxVert - minVert) / 2;   //For bounding circle
+        glm::vec3 meshRadius = maxVert - minVert * (1/ 2.0f); //For bounding box
 
-    // Bounding sphere roughly same size and placement as mesh below 
-   // Multiple bounding spheres can be added for the same mesh if needed
-    g_scene.bounding_spheres = { Sphere(meshPos, meshRadius)};
+        // Bounding sphere roughly same size and placement as mesh below 
+       // Multiple bounding spheres can be added for the same mesh if needed
+        //g_scene.bounding_spheres = { Sphere(meshPos, meshRadius)};
+        g_scene.boundingBoxes = { Box(meshPos, meshRadius) };
+        
 }
 
 void updateSpheres(RTContext& rtx) {
@@ -272,6 +291,33 @@ void updateMesh(RTContext& rtx, const char* filename) {
     }
 }
 
+
+void updateMaterialPtrs(RTContext &rtx) {
+    g_scene.material_ptr[rtx.LAMBERTIAN].reset( new Lambertian(rtx.lambertianColor) );
+
+    g_scene.material_ptr[rtx.YELLOWMETAL].reset( new Metal(glm::vec3(0.8, 0.6, 0.2), rtx.metalFuzz) );
+    g_scene.material_ptr[rtx.GREYMETAL].reset( new Metal(glm::vec3(0.77, 0.78, 0.82), rtx.metalFuzz) );
+
+    g_scene.material_ptr[rtx.GLASS].reset( new Dielectric(rtx.dielectricRefraction) );
+    g_scene.material_ptr[rtx.HOLLOWGLASS].reset( new Dielectric(rtx.dielectricRefraction) );
+
+    // Choose correct constructor for ground material pointer
+    if (rtx.groundMaterial == rtx.LAMBERTIAN) {
+        g_scene.ground.mat_ptr.reset(new Lambertian(rtx.groundSphereColor));
+    }
+    else if (rtx.groundMaterial == rtx.YELLOWMETAL) {
+        g_scene.ground.mat_ptr.reset( new Metal(rtx.metalColor1, rtx.metalFuzz) );
+    }
+    else if (rtx.groundMaterial == rtx.GREYMETAL) {
+        g_scene.ground.mat_ptr.reset( new Metal(rtx.metalColor2, rtx.metalFuzz) );
+    }
+    else if (rtx.groundMaterial == rtx.GLASS || rtx.groundMaterial == rtx.HOLLOWGLASS) {
+        g_scene.ground.mat_ptr.reset( new Dielectric(rtx.dielectricRefraction) );
+    }
+    
+}
+
+
 // MODIFY THIS FUNCTION!
 void updateLine(RTContext &rtx, int y, const char* filename)
 {
@@ -284,15 +330,20 @@ void updateLine(RTContext &rtx, int y, const char* filename)
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
 
+    updateMaterialPtrs(rtx);
+
     //Updates the material of the spheres
     updateSpheres(rtx);
 
     //Updates the material of the boxes
     updateBoxes(rtx);
 
-    if (g_scene.mesh.front().mat_ptr != g_scene.material_ptr[rtx.meshMaterial]) {
-        updateMesh(rtx, filename);
+    if (rtx.showMesh) {
+        if (g_scene.mesh.front().mat_ptr != g_scene.material_ptr[rtx.meshMaterial]) {
+            updateMesh(rtx, filename);
+        }
     }
+        
 
     // You can try parallelising this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)

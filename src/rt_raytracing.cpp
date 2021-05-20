@@ -291,7 +291,6 @@ void updateMesh(RTContext& rtx, const char* filename) {
 
 }
 
-
 void updateMaterialPtrs(RTContext &rtx) {
 
     //Each material pointer must be converted to its subclass
@@ -349,6 +348,7 @@ void updateLine(RTContext &rtx, int y, const char* filename)
     glm::vec3 vertical(0.0f, 2.0f, 0.0f);
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
+
 
     updateMaterialPtrs(rtx);
 

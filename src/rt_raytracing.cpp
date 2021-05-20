@@ -56,11 +56,12 @@ bool hit_world(RTContext &rtx, const Ray &r, float t_min, float t_max, HitRecord
 
     if (rtx.showMesh) {
         /* FOR BOUNDING SPHERES
+        
+            for (int i = 0; i < g_scene.boundingBoxes.size(); ++i) {
+            if (g_scene.boundingBoxes[i].hit(r, t_min, closest_so_far, temp_rec)) {
+            */
         for (int i = 0; i < g_scene.bounding_spheres.size(); ++i) {
             if (g_scene.bounding_spheres[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            */
-        for (int i = 0; i < g_scene.boundingBoxes.size(); ++i) {
-            if (g_scene.boundingBoxes[i].hit(r, t_min, closest_so_far, temp_rec)) {
                 for (int j = 0; j < g_scene.mesh.size(); ++j) {
                     if (g_scene.mesh[j].hit(r, t_min, closest_so_far, temp_rec)) {
                         hit_anything = true;
@@ -226,13 +227,13 @@ void setupScene(RTContext &rtx, const char *filename)
         rtx.meshMaterial = rtx.GREYMETAL;
 
         glm::vec3 meshPos = minVert + maxVert * (1 / 2.0f);
-        //float meshRadius = glm::length(maxVert - minVert) / 2;   //For bounding circle
-        glm::vec3 meshRadius = maxVert - minVert * (1/ 2.0f); //For bounding box
+        float meshRadius = glm::length(maxVert - minVert) / 2;   //For bounding circle
+        //glm::vec3 meshRadius = maxVert - minVert * (1/ 2.0f); //For bounding box
 
         // Bounding sphere roughly same size and placement as mesh below 
        // Multiple bounding spheres can be added for the same mesh if needed
-        //g_scene.bounding_spheres = { Sphere(meshPos, meshRadius)};
-        g_scene.boundingBoxes = { Box(meshPos, meshRadius) };
+        g_scene.bounding_spheres = { Sphere(meshPos, meshRadius)};
+        //g_scene.boundingBoxes = { Box(meshPos, meshRadius) };
         
 }
 
@@ -352,10 +353,14 @@ void updateLine(RTContext &rtx, int y, const char* filename)
     updateMaterialPtrs(rtx);
 
     //Updates the material of the spheres
-    updateSpheres(rtx);
-
+    if (rtx.showSpheres) {
+        updateSpheres(rtx);
+    }
     //Updates the material of the boxes
-    updateBoxes(rtx);
+    if (rtx.showBoxes) {
+        updateBoxes(rtx);
+    }
+    
 
     if (rtx.showMesh) {
         if (g_scene.mesh.front().mat_ptr != g_scene.material_ptr[rtx.meshMaterial]) {

@@ -29,6 +29,10 @@ public:
         return true;
     }
 
+    virtual glm::vec3 getAlbedo() {
+        return albedo;
+    }
+
 public:
     glm::vec3 albedo;
 };
@@ -42,6 +46,10 @@ public:
         scattered = Ray(rec.p, reflected + (float)fuzz * random_in_unit_sphere());
         attenuation = albedo;
         return (glm::dot(scattered.direction(), rec.normal) > 0);
+    }
+
+    virtual glm::vec3 getAlbedo() {
+        return albedo;
     }
 
 public:
@@ -81,6 +89,10 @@ public:
         attenuation = glm::vec3(1.0, 1.0, 1.0);
         scattered = Ray(rec.p, direction);
         return true;
+    }
+
+    virtual double getRefraction() {
+        return ir;
     }
 
 public:

@@ -32,7 +32,7 @@ struct RTContext {
     bool antiAliasingOn = true;
 
     glm::vec3 groundSphereColor = glm::vec3(0.8, 0.8, 0.0);
-    int groundMaterial = 3;
+    int groundMaterial = 2;
     glm::vec3 lambertianColor = glm::vec3(0.1, 0.2, 0.5);
     float metalFuzz = 0.0;
     glm::vec3 metalColor1 = glm::vec3(0.8, 0.6, 0.2);

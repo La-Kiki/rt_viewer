@@ -45,7 +45,7 @@ struct RTContext {
     std::vector<int> sphereMaterials;
     bool showBoxes = false;
     std::vector<int> boxMaterials;
-    bool showMesh = true;
+    bool showMesh = false;
     int meshMaterial;
 
     enum materialIndex {LAMBERTIAN, YELLOWMETAL, GREYMETAL, GLASS, HOLLOWGLASS};

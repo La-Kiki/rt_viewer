@@ -165,7 +165,7 @@ void showGui(Context &ctx)
 
     if (ImGui::CollapsingHeader("Objects"))
     {
-        const char * names[5] = {"Lambertian", "Metal 2", "Metal 2", "Dielectric", "Dielectric Shell" };
+        const char * names[5] = {"Lambertian", "Metal 1", "Metal 2", "Dielectric", "Dielectric Shell" };
 
         if (ImGui::Checkbox("Show spheres", &ctx.rtx.showSpheres)) { rt::resetAccumulation(ctx.rtx); }
         // Controls for each sphere's material property
